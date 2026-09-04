@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>What's Your Season? — b!ank & LOUD Interactive Quiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #B30006;
+      --red-dark: #8C0005;
+      --black: #111111;
+      --white: #FFFFFF;
+      --cream: #FAF7F2;
+      --stone: #E8E5DF;
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      background: var(--cream);
+      transition: background 0.8s ease;
+      padding: 20px 0;
+    }
+
+    body.blank-mode { background: linear-gradient(135deg, #FAF7F2 0%, #EDE8E0 100%); }
+    body.loud-mode  { background: linear-gradient(135deg, #700004 0%, #B30006 100%); }
+
+    /* ── QUIZ SHELL ── */
+    .quiz-shell {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── LOGO BAR ── */
+    .logo-bar {
+      text-align: center;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .logo-bar a {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--black);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-symbol-img {
+      height: 22px;
+      width: auto;
+    }
+    body.loud-mode .logo-bar a { color: rgba(255,255,255,0.95); }
+    body.loud-mode .logo-symbol-img { filter: brightness(0) invert(1); }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap {
+      width: 100%;
+      height: 6px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 100px;
+      margin-bottom: 2.5rem;
+      overflow: hidden;
+    }
+    body.loud-mode .progress-wrap { background: rgba(255,255,255,0.2); }
+    .progress-bar {
+      height: 100%;
+      background: var(--red);
+      border-radius: 100px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0%;
+    }
+    body.loud-mode .progress-bar { background: #FFF; }
+
+    /* ── SCREEN TRANSITIONS ── */
+    .screen {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .screen.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .screen.exit {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+
+    /* ── INTRO SCREEN ── */
+    .intro-hero {
+      text-align: center;
+    }
+    .intro-hero .season-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-radius: 20px;
+      overflow: hidden;
+      height: 290px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+    }
+    .split-blank {
+      background: linear-gradient(160deg, #F5F3EF, #DDD9D0);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .split-blank img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+      mix-blend-mode: multiply;
+    }
+    .split-loud {
+      background: linear-gradient(160deg, #B30006, #700004);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .split-loud img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.9;
+    }
+    .split-overlay-content {
+      position: relative;
+      z-index: 2;
+      background: rgba(0,0,0,0.4);
+      padding: 12px 18px;
+      border-radius: 12px;
+      backdrop-filter: blur(4px);
+    }
+    .split-blank .split-overlay-content {
+      background: rgba(255,255,255,0.7);
+    }
+    .split-blank .season-label {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #111;
+    }
+    .split-loud .season-label {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #FFF;
+    }
+    .split-blank .season-sub { font-size: 0.82rem; color: #444; font-weight: 600; }
+    .split-loud .season-sub  { font-size: 0.82rem; color: rgba(255,255,255,0.9); font-weight: 600; }
+
+    .intro-eyebrow {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--red);
+      margin-bottom: 0.6rem;
+    }
+    .intro-title {
+      font-family: var(--font-display);
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: var(--black);
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .intro-desc {
+      font-size: 1.05rem;
+      color: #555;
+      line-height: 1.6;
+      max-width: 520px;
+      margin: 0 auto 2rem;
+    }
+    .btn-start {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--black);
+      color: #FFF;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 16px 44px;
+      border-radius: 100px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+    .btn-start:hover {
+      background: var(--red);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(179,0,6,0.35);
+    }
+
+    /* ── QUESTION SCREEN ── */
+    .q-number {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--red);
+      margin-bottom: 0.8rem;
+      display: block;
+    }
+    body.loud-mode .q-number { color: rgba(255,255,255,0.8); }
+    .q-text {
+      font-family: var(--font-display);
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: var(--black);
+      line-height: 1.25;
+      margin-bottom: 0.4rem;
+    }
+    body.loud-mode .q-text { color: #FFF; }
+    .q-sub {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+    body.loud-mode .q-sub { color: rgba(255,255,255,0.7); }
+
+    /* Slider */
+    .slider-wrap {
+      position: relative;
+      margin-bottom: 1.5rem;
+      background: #FFF;
+      padding: 1.5rem;
+      border-radius: 16px;
+      border: 1px solid var(--stone);
+    }
+    body.loud-mode .slider-wrap {
+      background: rgba(0,0,0,0.25);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.2rem;
+    }
+    .slider-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #333;
+      max-width: 46%;
+    }
+    body.loud-mode .slider-label { color: rgba(255,255,255,0.9); }
+    .slider-label.right { text-align: right; }
+
+    .season-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 100px;
+      background: linear-gradient(to right, #DDD9D0 0%, #B30006 100%);
+      outline: none;
+      cursor: pointer;
+    }
+    .season-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #111;
+      cursor: pointer;
+      border: 3px solid #FFF;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease;
+    }
+    .season-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    body.loud-mode .season-slider { background: linear-gradient(to right, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.95) 100%); }
+    body.loud-mode .season-slider::-webkit-slider-thumb { background: #FFF; border-color: var(--red); }
+
+    /* Choice cards */
+    .choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    .choice-card {
+      border-radius: 16px;
+      padding: 1.6rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.25s ease;
+      text-align: center;
+      user-select: none;
+    }
+    .choice-card.blank-choice {
+      background: linear-gradient(135deg, #F5F3EF, #EDE8E0);
+      border-color: #DDD9D0;
+    }
+    .choice-card.loud-choice {
+      background: linear-gradient(135deg, #B30006, #8C0005);
+      border-color: #8C0005;
+      color: #FFF;
+    }
+    .choice-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.15); }
+    .choice-card.selected-blank {
+      border-color: #111 !important;
+      box-shadow: 0 0 0 4px rgba(17,17,17,0.2);
+      transform: translateY(-3px);
+    }
+    .choice-card.selected-loud {
+      border-color: #FFF !important;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.4);
+      transform: translateY(-3px);
+    }
+    .choice-emoji { font-size: 2.2rem; margin-bottom: 0.6rem; }
+    .choice-title { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin-bottom: 0.4rem; line-height: 1.3; }
+    .choice-sub { font-size: 0.84rem; opacity: 0.8; line-height: 1.4; }
+
+    .btn-next {
+      display: block;
+      width: 100%;
+      background: var(--black);
+      color: #FFF;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 16px;
+      border-radius: 100px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      margin-top: 1.5rem;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .btn-next.ready {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .btn-next.ready:hover {
+      background: var(--red);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(179,0,6,0.35);
+    }
+    body.loud-mode .btn-next { background: #FFF; color: var(--red); }
+    body.loud-mode .btn-next.ready:hover { background: rgba(255,255,255,0.9); }
+
+    /* ── RESULT SCREEN ── */
+    .result-card {
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+      background: #FFF;
+    }
+    .result-hero {
+      padding: 3rem 2.5rem 2.2rem;
+      text-align: center;
+    }
+    .result-blank .result-hero { background: linear-gradient(135deg, #F5F3EF, #EDE8E0); }
+    .result-loud  .result-hero { background: linear-gradient(135deg, #B30006, #8C0005); }
+    .result-season-icon { font-size: 4rem; margin-bottom: 0.8rem; }
+    .result-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--red);
+      margin-bottom: 0.4rem;
+    }
+    .result-loud .result-eyebrow { color: rgba(255,210,100,0.9); }
+    .result-headline {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--black);
+      line-height: 1.15;
+      margin-bottom: 0.8rem;
+      letter-spacing: -0.5px;
+    }
+    .result-loud .result-headline { color: #FFF; }
+    .result-tagline {
+      font-size: 1.05rem;
+      color: #555;
+      line-height: 1.6;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .result-loud .result-tagline { color: rgba(255,255,255,0.85); }
+
+    .result-body {
+      background: #FFF;
+      padding: 2.2rem;
+    }
+
+    /* Product recommendation showcase */
+    .rec-showcase {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .rec-card {
+      border: 1px solid var(--stone);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #FAF7F2;
+      text-align: center;
+    }
+    .rec-card img {
+      width: 100%;
+      height: 190px;
+      object-fit: cover;
+      object-position: center top;
+    }
+    .rec-card-info {
+      padding: 10px;
+    }
+    .rec-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--black);
+    }
+    .rec-sub {
+      font-size: 0.78rem;
+      color: #777;
+      margin-top: 2px;
+    }
+
+    .values-row {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      justify-content: center;
+    }
+    .value-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--stone);
+      padding: 8px 16px;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    /* Email capture */
+    .email-section {
+      background: var(--cream);
+      border-radius: 16px;
+      padding: 1.8rem;
+      margin-bottom: 1.8rem;
+      border: 1px solid var(--stone);
+    }
+    .email-section h4 {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--black);
+    }
+    .email-section p {
+      font-size: 0.88rem;
+      color: #666;
+      margin-bottom: 1.2rem;
+      line-height: 1.5;
+    }
+    .email-input-row {
+      display: flex;
+      gap: 0.8rem;
+    }
+    .email-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid var(--stone);
+      border-radius: 100px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: var(--black);
+      background: #FFF;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .email-input:focus { border-color: var(--red); }
+    .btn-email {
+      background: var(--red);
+      color: #FFF;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 100px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .btn-email:hover { background: var(--red-dark); transform: translateY(-1px); }
+
+    .email-success {
+      display: none;
+      background: #E8F5EC;
+      border: 1px solid #A8D5B5;
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      color: #0E3320;
+      font-size: 0.92rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* CTA buttons */
+    .cta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .btn-shop {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--black);
+      color: #FFF;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 14px 20px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+    .btn-shop:hover { transform: translateY(-2px); background: var(--red); box-shadow: 0 6px 20px rgba(179,0,6,0.3); }
+    .btn-share {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: transparent;
+      border: 2px solid var(--stone);
+      color: var(--black);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 14px 20px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .btn-share:hover { border-color: var(--black); transform: translateY(-2px); }
+    .btn-retake {
+      display: block;
+      width: 100%;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #888;
+      text-decoration: underline;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+    }
+    .btn-retake:hover { color: var(--black); }
+
+    /* Share toast */
+    .share-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--black);
+      color: #FFF;
+      padding: 12px 28px;
+      border-radius: 100px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: transform 0.4s ease;
+      z-index: 999;
+    }
+    .share-toast.visible { transform: translateX(-50%) translateY(0); }
+
+    /* ── WELCOME POPUP MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-box {
+      background: #FFFFFF;
+      border-radius: 24px;
+      max-width: 480px;
+      width: 100%;
+      padding: 2.4rem 2rem;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+      transform: translateY(20px) scale(0.95);
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .modal-overlay.active .modal-box {
+      transform: translateY(0) scale(1);
+    }
+    .modal-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: #F0F0F0;
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #555;
+      transition: all 0.2s;
+    }
+    .modal-close:hover { background: #E0E0E0; color: #111; }
+    .modal-icon { font-size: 3.5rem; margin-bottom: 0.5rem; }
+    .modal-badge {
+      display: inline-block;
+      background: #FDE8E8;
+      color: #B30006;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      margin-bottom: 0.8rem;
+    }
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--black);
+      line-height: 1.2;
+      margin-bottom: 0.6rem;
+    }
+    .modal-desc {
+      font-size: 0.92rem;
+      color: #555;
+      line-height: 1.55;
+      margin-bottom: 1.8rem;
+    }
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .modal-btn-download {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--red);
+      color: #FFF;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px 20px;
+      border-radius: 100px;
+      text-decoration: none;
+      box-shadow: 0 6px 20px rgba(179,0,6,0.35);
+      transition: all 0.2s;
+    }
+    .modal-btn-download:hover { background: var(--red-dark); transform: translateY(-2px); }
+    .modal-btn-store {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #111;
+      color: #FFF;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 13px 20px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .modal-btn-store:hover { background: #333; transform: translateY(-2px); }
+    .modal-perks {
+      background: #FAF7F2;
+      border: 1px solid var(--stone);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      color: #444;
+    }
+
+    @media (max-width: 600px) {
+      .intro-title { font-size: 2.1rem; }
+      .q-text { font-size: 1.6rem; }
+      .cta-row, .rec-showcase { grid-template-columns: 1fr; }
+      .email-input-row { flex-direction: column; }
+      .season-split { height: 220px; }
+      .modal-box { padding: 2rem 1.4rem; }
+      .modal-title { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body class="blank-mode">
+
+  <div class="quiz-shell">
+
+    <!-- Logo -->
+    <div class="logo-bar">
+      <a href="presentation_visual_board.html">
+        <img src="Images/A B&L NEW SYMBOLS Black .png" alt="Symbols" class="logo-symbol-img" />
+        <span>b!ank &amp; LOUD</span>
+      </a>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 0: INTRO                                               -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="screen active" id="screen-intro">
+      <div class="intro-hero">
+
+        <div class="season-split">
+          <div class="split-blank">
+            <img src="Images/B woman signature white tee web pic.png" alt="b!ank woman" />
+            <div class="split-overlay-content">
+              <div class="season-label">🍂 Autumn / Winter</div>
+              <div class="season-sub">b!ank — Still &amp; Considered</div>
+            </div>
+          </div>
+          <div class="split-loud">
+            <img src="Images/B woman make love web pic.png" alt="LOUD woman" />
+            <div class="split-overlay-content">
+              <div class="season-label" style="color:#FFF;">🌸 Spring / Summer</div>
+              <div class="season-sub" style="color:rgba(255,255,255,0.9);">LOUD — Bold &amp; Unapologetic</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="intro-eyebrow">September 2026 Campaign Launch</div>
+        <h1 class="intro-title">What's Your<br/>Season?</h1>
+        <p class="intro-desc">Fashion, like emotion, moves in cycles. Five quick questions to discover which collection speaks to where you are right now.</p>
+        <button class="btn-start" onclick="startQuiz()">Start the Quiz →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 1: QUESTION 1 — Energy                                 -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-q1">
+      <span class="q-number">Question 1 of 5</span>
+      <h2 class="q-text">Right now, my energy feels…</h2>
+      <p class="q-sub">Drag the slider to where you honestly are today.</p>
+
+      <div class="slider-wrap">
+        <div class="slider-labels">
+          <span class="slider-label">🍂 Quiet &amp; grounded. I need stillness.</span>
+          <span class="slider-label right">🌸 Electric &amp; alive. I'm in full bloom.</span>
+        </div>
+        <input type="range" class="season-slider" id="q1-slider" min="0" max="100" value="50"
+               oninput="onSlide(1, this.value)" onchange="onSlide(1, this.value)">
+      </div>
+
+      <button class="btn-next" id="btn-q1" onclick="nextQuestion(1)">Next →</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 2: QUESTION 2 — Wardrobe voice                         -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-q2">
+      <span class="q-number">Question 2 of 5</span>
+      <h2 class="q-text">My wardrobe should say…</h2>
+      <p class="q-sub">Pick the statement that feels most true right now.</p>
+
+      <div class="choice-grid">
+        <div class="choice-card blank-choice" id="q2-blank" onclick="selectChoice(2, 'blank')">
+          <div class="choice-emoji">—●●</div>
+          <div class="choice-title">"Less &amp; considered.<br/>Quality over noise."</div>
+          <div class="choice-sub">Minimal. Intentional. Quiet confidence.</div>
+        </div>
+        <div class="choice-card loud-choice" id="q2-loud" onclick="selectChoice(2, 'loud')">
+          <div class="choice-emoji">❤️</div>
+          <div class="choice-title">"Loud &amp; clear.<br/>You'll know what I stand for."</div>
+          <div class="choice-sub">Bold. Statement. Unapologetic.</div>
+        </div>
+      </div>
+
+      <button class="btn-next" id="btn-q2" onclick="nextQuestion(2)">Next →</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 3: QUESTION 3 — Weekend vibe                           -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-q3">
+      <span class="q-number">Question 3 of 5</span>
+      <h2 class="q-text">My ideal weekend looks like…</h2>
+      <p class="q-sub">No judgement. Just honest.</p>
+
+      <div class="choice-grid">
+        <div class="choice-card blank-choice" id="q3-blank" onclick="selectChoice(3, 'blank')">
+          <div class="choice-emoji">☕</div>
+          <div class="choice-title">Coffee, a book, and slow intentional mornings.</div>
+          <div class="choice-sub">Recharge. Reflect. Reset.</div>
+        </div>
+        <div class="choice-card loud-choice" id="q3-loud" onclick="selectChoice(3, 'loud')">
+          <div class="choice-emoji">🎉</div>
+          <div class="choice-title">People, music, movement and spontaneity.</div>
+          <div class="choice-sub">Connect. Express. Ignite.</div>
+        </div>
+      </div>
+
+      <button class="btn-next" id="btn-q3" onclick="nextQuestion(3)">Next →</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 4: QUESTION 4 — Values slider                          -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-q4">
+      <span class="q-number">Question 4 of 5</span>
+      <h2 class="q-text">The value I need to lead with right now is…</h2>
+      <p class="q-sub">Two expressions of the same truth.</p>
+
+      <div class="slider-wrap">
+        <div class="slider-labels">
+          <span class="slider-label">🤍 Less judgement of myself. More inner peace.</span>
+          <span class="slider-label right">❤️ More love, louder. Share it with the world.</span>
+        </div>
+        <input type="range" class="season-slider" id="q4-slider" min="0" max="100" value="50"
+               oninput="onSlide(4, this.value)" onchange="onSlide(4, this.value)">
+      </div>
+
+      <button class="btn-next" id="btn-q4" onclick="nextQuestion(4)">Next →</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 5: QUESTION 5 — The Visual Match                       -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-q5">
+      <span class="q-number">Question 5 of 5</span>
+      <h2 class="q-text">Which look calls to you right now?</h2>
+      <p class="q-sub">Trust your intuition. First reaction wins.</p>
+
+      <div class="choice-grid" style="height: 270px;">
+        <div class="choice-card blank-choice" id="q5-blank" onclick="selectChoice(5, 'blank')"
+             style="background-image:url('Images/B woman signature white tee web pic.png');background-size:cover;background-position:center top;height:100%;padding:0;position:relative;overflow:hidden;">
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top, rgba(0,0,0,0.75), transparent);padding:1.2rem;border-radius:0 0 14px 14px;">
+            <div class="choice-title" style="color:#FFF;font-size:1rem;">The Stillness Edit</div>
+            <div class="choice-sub" style="color:rgba(255,255,255,0.85);">b!ank · Autumn / Winter</div>
+          </div>
+        </div>
+        <div class="choice-card loud-choice" id="q5-loud" onclick="selectChoice(5, 'loud')"
+             style="background-image:url('Images/B woman make love web pic.png');background-size:cover;background-position:center top;height:100%;padding:0;position:relative;overflow:hidden;">
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top, rgba(0,0,0,0.75), transparent);padding:1.2rem;border-radius:0 0 14px 14px;">
+            <div class="choice-title" style="color:#FFF;font-size:1rem;">The Emergence Edit</div>
+            <div class="choice-sub" style="color:rgba(255,255,255,0.85);">LOUD · Spring / Summer</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-next" id="btn-q5" onclick="showResult()">See My Season →</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 6: RESULT — b!ank                                      -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-result-blank">
+      <div class="result-card result-blank">
+        <div class="result-hero">
+          <div class="result-season-icon">🍂</div>
+          <div class="result-eyebrow">Your Season is Revealed</div>
+          <h2 class="result-headline">You're in your<br/>b!ank season.</h2>
+          <p class="result-tagline">This is your autumn. A time for stillness, intention, and quiet conviction. Your voice doesn't need to shout — it just needs to be true.</p>
+        </div>
+        <div class="result-body">
+          
+          <div class="rec-showcase">
+            <div class="rec-card">
+              <img src="Images/B woman minimal logo white web.png" alt="Women's minimal tee" />
+              <div class="rec-card-info">
+                <div class="rec-title">Women's b!ank Minimal Tee</div>
+                <div class="rec-sub">100% Organic Cotton · GOTS</div>
+              </div>
+            </div>
+            <div class="rec-card">
+              <img src="Images/B mens minimal logo web pic.png" alt="Men's minimal tee" />
+              <div class="rec-card-info">
+                <div class="rec-title">Men's b!ank Micro Mark Tee</div>
+                <div class="rec-sub">Heavyweight Organic White</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="values-row">
+            <span class="value-chip">— Less Hate</span>
+            <span class="value-chip">●● Less Judgement</span>
+            <span class="value-chip">❤️ More Love</span>
+          </div>
+
+          <div class="email-section" id="email-section-blank">
+            <h4>🤝 Join The Kindness Collective &amp; Get Your Free Lookbook</h4>
+            <p>Join thousands proving kindness isn't weakness. Get the official 8-page Stillness Edit Lookbook, 30 Days of Kindness prompts, and vote on future drops &amp; charity donations.</p>
+            <div class="email-input-row">
+              <input type="email" class="email-input" placeholder="your@email.com" id="email-blank">
+              <button class="btn-email" onclick="submitEmail('blank')">Join &amp; Receive →</button>
+            </div>
+          </div>
+          <div class="email-success" id="email-success-blank">
+            ✅ Welcome to The Kindness Collective! Your Stillness Lookbook is in your inbox, along with your 10% welcome gift.
+          </div>
+
+          <div class="cta-row">
+            <a href="https://blankandloud.com/" class="btn-shop" target="_blank">View the Collection →</a>
+            <button class="btn-share" onclick="shareResult('blank')">Share My Season 🍂</button>
+          </div>
+          <button class="btn-retake" onclick="retake()">Retake the quiz</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 7: RESULT — LOUD                                       -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-result-loud">
+      <div class="result-card result-loud">
+        <div class="result-hero">
+          <div class="result-season-icon">🌸</div>
+          <div class="result-eyebrow">Your Season is Revealed</div>
+          <h2 class="result-headline">You're in your<br/>LOUD season.</h2>
+          <p class="result-tagline">This is your spring. Energy, emergence, and unapologetic bloom. You have something to say — and the world is ready to hear it.</p>
+        </div>
+        <div class="result-body">
+
+          <div class="rec-showcase">
+            <div class="rec-card">
+              <img src="Images/B woman make love web pic.png" alt="Women's make love not war" />
+              <div class="rec-card-info">
+                <div class="rec-title">MAKE LOVE NOT WAR Tee</div>
+                <div class="rec-sub">Crimson Organic Cotton</div>
+              </div>
+            </div>
+            <div class="rec-card">
+              <img src="Images/B mens dog tee web pic.png" alt="Men's DOGS > PEOPLE" />
+              <div class="rec-card-info">
+                <div class="rec-title">DOGS &gt; PEOPLE Statement Tee</div>
+                <div class="rec-sub">Bestselling Organic Cut</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="values-row">
+            <span class="value-chip" style="background:#FDE8E8;color:#B30006;">— Less Hate</span>
+            <span class="value-chip" style="background:#FDE8E8;color:#B30006;">●● Less Judgement</span>
+            <span class="value-chip" style="background:#FDE8E8;color:#B30006;">❤️ More Love</span>
+          </div>
+
+          <div class="email-section" id="email-section-loud" style="background:#FFF8F8;border-color:#FDE8E8;">
+            <h4>🤝 Join The Kindness Collective &amp; Get Your Free Lookbook</h4>
+            <p>Join thousands proving kindness isn't weakness. Get the official 8-page Emergence Edit Lookbook, 30 Days of Kindness prompts, and vote on future drops &amp; charity donations.</p>
+            <div class="email-input-row">
+              <input type="email" class="email-input" placeholder="your@email.com" id="email-loud" style="border-color:#FDE8E8;">
+              <button class="btn-email" onclick="submitEmail('loud')" style="background:#B30006;">Join &amp; Receive →</button>
+            </div>
+          </div>
+          <div class="email-success" id="email-success-loud">
+            ✅ Welcome to The Kindness Collective! Your Lookbook download is starting, and your confirmation is on its way.
+          </div>
+
+          <div class="cta-row">
+            <a href="https://blankandloud.com/" class="btn-shop" target="_blank" style="background:#B30006;">View the Collection →</a>
+            <button class="btn-share" onclick="shareResult('loud')">Share My Season 🌸</button>
+          </div>
+          <button class="btn-retake" onclick="retake()">Retake the quiz</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end quiz-shell -->
+
+  <!-- Kindness Collective Welcome Modal -->
+  <div class="modal-overlay" id="welcomeModal" onclick="closeModalOnOutsideClick(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-icon">🤝</div>
+      <span class="modal-badge">Welcome to the Movement</span>
+      <h3 class="modal-title">You're in The Kindness Collective!</h3>
+      <p class="modal-desc">Thank you for standing for something real. Your official 8-page <strong>"What's Your Season?" Lookbook (PDF)</strong> is ready to download below.</p>
+      
+      <div class="modal-actions">
+        <a href="What's Your Season_ — The September Lookbook · b!ank & LOUD.pdf" download="Whats_Your_Season_Lookbook_BLANK_and_LOUD.pdf" class="modal-btn-download" id="modalDownloadBtn">
+          <span>📖 Download 8-Page Lookbook (PDF)</span>
+        </a>
+        <a href="https://blankandloud.com/" target="_blank" class="modal-btn-store">
+          <span>View the Collection →</span>
+        </a>
+      </div>
+
+      <div class="modal-perks">
+        <div>🎁 <strong>Your 10% Welcome Voucher:</strong> <code style="background:rgba(0,0,0,0.06);padding:2px 8px;border-radius:4px;font-weight:700;color:#B30006;">KINDNESS10</code></div>
+        <div style="margin-top:6px;font-size:0.8rem;color:#777;">A welcome note has been dispatched to your email.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Toast -->
+  <div class="share-toast" id="shareToast">📋 Copied! Share it on your stories with #WhatsYourSeason</div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────
+    const answers = { q1: null, q2: null, q3: null, q4: null, q5: null };
+    let currentScreen = 'intro';
+    const totalQuestions = 5;
+
+    // ── Screen Management ───────────────────────────────────
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => {
+        s.classList.remove('active', 'exit');
+      });
+      const target = document.getElementById(id);
+      if (target) {
+        target.style.display = 'block';
+        setTimeout(() => target.classList.add('active'), 20);
+      }
+    }
+
+    function transitionTo(nextId) {
+      const current = document.querySelector('.screen.active');
+      if (current) {
+        current.classList.add('exit');
+        setTimeout(() => {
+          current.classList.remove('active', 'exit');
+          current.style.display = '';
+          showScreen(nextId);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 400);
+      } else {
+        showScreen(nextId);
+      }
+    }
+
+    // ── Progress Bar ────────────────────────────────────────
+    function updateProgress(step) {
+      const pct = (step / (totalQuestions + 1)) * 100;
+      document.getElementById('progressBar').style.width = pct + '%';
+    }
+
+    // ── Body Theming ────────────────────────────────────────
+    function setTheme(score) {
+      const body = document.body;
+      if (score > 50) {
+        body.classList.remove('blank-mode');
+        body.classList.add('loud-mode');
+      } else {
+        body.classList.remove('loud-mode');
+        body.classList.add('blank-mode');
+      }
+    }
+
+    // ── Score Calculation ───────────────────────────────────
+    function calcScore() {
+      let score = 0;
+      let count = 0;
+
+      if (answers.q1 !== null) { score += answers.q1; count++; }
+      if (answers.q2 !== null) { score += (answers.q2 === 'loud' ? 100 : 0); count++; }
+      if (answers.q3 !== null) { score += (answers.q3 === 'loud' ? 100 : 0); count++; }
+      if (answers.q4 !== null) { score += answers.q4; count++; }
+      if (answers.q5 !== null) { score += (answers.q5 === 'loud' ? 100 : 0); count++; }
+
+      return count > 0 ? score / count : 50;
+    }
+
+    // ── Quiz Actions ────────────────────────────────────────
+    function startQuiz() {
+      updateProgress(0);
+      transitionTo('screen-q1');
+    }
+
+    function onSlide(q, value) {
+      answers['q' + q] = parseInt(value);
+      document.getElementById('btn-q' + q).classList.add('ready');
+      const score = calcScore();
+      setTheme(score);
+    }
+
+    function selectChoice(q, choice) {
+      const blankCard = document.getElementById('q' + q + '-blank');
+      const loudCard  = document.getElementById('q' + q + '-loud');
+      blankCard.classList.remove('selected-blank');
+      loudCard.classList.remove('selected-loud');
+
+      if (choice === 'blank') {
+        blankCard.classList.add('selected-blank');
+      } else {
+        loudCard.classList.add('selected-loud');
+      }
+
+      answers['q' + q] = choice;
+      document.getElementById('btn-q' + q).classList.add('ready');
+      const score = calcScore();
+      setTheme(score);
+    }
+
+    function nextQuestion(q) {
+      updateProgress(q);
+      transitionTo('screen-q' + (q + 1));
+    }
+
+    function showResult() {
+      updateProgress(6);
+      const score = calcScore();
+      const result = score > 50 ? 'loud' : 'blank';
+
+      if (result === 'blank') {
+        document.body.classList.remove('loud-mode');
+        document.body.classList.add('blank-mode');
+        transitionTo('screen-result-blank');
+      } else {
+        document.body.classList.remove('blank-mode');
+        document.body.classList.add('loud-mode');
+        transitionTo('screen-result-loud');
+      }
+    }
+
+    function retake() {
+      Object.keys(answers).forEach(k => answers[k] = null);
+      ['q1-slider', 'q4-slider'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = 50;
+      });
+      document.querySelectorAll('.choice-card').forEach(c => {
+        c.classList.remove('selected-blank', 'selected-loud');
+      });
+      document.querySelectorAll('.btn-next').forEach(b => b.classList.remove('ready'));
+      document.body.classList.remove('loud-mode');
+      document.body.classList.add('blank-mode');
+      updateProgress(0);
+      transitionTo('screen-intro');
+    }
+
+    // ── Email Capture & Notification Dispatch ────────────────
+    function submitEmail(brand) {
+      const input = document.getElementById('email-' + brand);
+      const val = input.value.trim();
+      if (!val || !val.includes('@')) {
+        input.style.borderColor = '#B30006';
+        input.placeholder = 'Please enter a valid email';
+        return;
+      }
+
+      // 1. Show inline confirmation state
+      document.getElementById('email-section-' + brand).style.display = 'none';
+      document.getElementById('email-success-' + brand).style.display = 'block';
+
+      // 2. Dispatch subscriber notification to Kim & Donovan
+      const seasonLabel = brand === 'loud' ? 'LOUD (Spring / Summer)' : 'b!ank (Autumn / Winter)';
+      fetch('https://formsubmit.co/ajax/kimeleon@hotmail.co.za', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          Subscriber_Email: val,
+          _cc: 'donovan@punkit-creative.co.za',
+          _subject: 'New Kindness Collective Member: ' + val + ' (' + seasonLabel + ')',
+          Season_Result: seasonLabel,
+          Campaign: "What's Your Season? — September 2026",
+          Date: new Date().toLocaleString()
+        })
+      }).catch(err => console.log('Dispatch queued:', err));
+
+      // 3. Trigger Welcome Pop-up Modal with Lookbook PDF Download
+      openModal();
+    }
+
+    function openModal() {
+      const modal = document.getElementById('welcomeModal');
+      if (modal) {
+        modal.classList.add('active');
+        // Auto-trigger the download after brief pause
+        setTimeout(() => {
+          const downloadBtn = document.getElementById('modalDownloadBtn');
+          if (downloadBtn) downloadBtn.click();
+        }, 600);
+      }
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('welcomeModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function closeModalOnOutsideClick(e) {
+      if (e.target.id === 'welcomeModal') closeModal();
+    }
+
+    // ── Share ───────────────────────────────────────────────
+    function shareResult(brand) {
+      const texts = {
+        blank: "I took the b!ank & LOUD 'What's Your Season?' quiz and I'm in my AUTUMN season 🍂 — quiet, intentional, still. What's yours? #WhatsYourSeason #blankandloud",
+        loud:  "I took the b!ank & LOUD 'What's Your Season?' quiz and I'm in my SPRING season 🌸 — electric, bold, LOUD. What's yours? #WhatsYourSeason #blankandloud"
+      };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(texts[brand]).then(() => showToast());
+      } else {
+        showToast();
+      }
+    }
+
+    function showToast() {
+      const toast = document.getElementById('shareToast');
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), 3500);
+    }
+
+    // ── Init ────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      showScreen('screen-intro');
+    });
+  </script>
+</body>
+</html>
