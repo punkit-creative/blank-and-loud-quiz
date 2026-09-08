@@ -1208,15 +1208,21 @@
       document.getElementById('email-section-' + brand).style.display = 'none';
       document.getElementById('email-success-' + brand).style.display = 'block';
 
-      // 2. Dispatch subscriber notification to Kim & Donovan
+      // 2. Dispatch subscriber notification to Kim & Donovan via Web3Forms
       const seasonLabel = brand === 'loud' ? 'LOUD (Spring / Summer)' : 'b!ank (Autumn / Winter)';
-      fetch('https://formsubmit.co/ajax/hello@blankandloud.com', {
+      const WEB3FORMS_ACCESS_KEY = '7c83aa0e-04d2-4e8e-b3f4-0b998bd84550';
+
+      fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: 'New Kindness Collective Member: ' + val + ' (' + seasonLabel + ')',
+          from_name: 'b!ank & LOUD Quiz',
+          email: val,
+          replyto: val,
+          cc: 'donovan@punkit-creative.co.za',
           Subscriber_Email: val,
-          _cc: 'donovan@punkit-creative.co.za',
-          _subject: 'New Kindness Collective Member: ' + val + ' (' + seasonLabel + ')',
           Season_Result: seasonLabel,
           Campaign: "What's Your Season? — September 2026",
           Date: new Date().toLocaleString()
